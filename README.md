@@ -1,0 +1,2 @@
+# siteone
+config gitingore
