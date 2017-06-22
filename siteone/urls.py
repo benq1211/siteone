@@ -14,13 +14,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url,include
+from django.shortcuts import render,HttpResponseRedirect
 from django.contrib import admin
-from django.http import HttpResponse
+
+
 def index(request):
-    return HttpResponse("THis is index page")
+    return HttpResponseRedirect('/blog/')
 urlpatterns = [
     url("^$", index),
     url(r'^admin/', admin.site.urls),
+    #url(r"^$",include('blog.urls')),
     url(r"^blog/",include('blog.urls')),
      url(r"^comments/",include('comments.urls')),
 ]
