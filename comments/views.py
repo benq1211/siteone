@@ -45,6 +45,7 @@ def post_comment(request, post_pk):
                        'form': form,
                        'comment_list': post.comment_set.all()
                        }
+
             return render(request,'blog/detail.html',context=context)
 
         else:
