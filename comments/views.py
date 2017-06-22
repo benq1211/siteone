@@ -1,4 +1,4 @@
-
+import markdown
 from django.shortcuts import render, get_object_or_404, redirect
 from blog.models import Post
 
@@ -33,7 +33,19 @@ def post_comment(request, post_pk):
 
             # 重定向到 post 的详情页，实际上当 redirect 函数接收一个模型的实例时，它会调用这个模型实例的 get_absolute_url 方法，
             # 然后重定向到 get_absolute_url 方法返回的 URL。
-            return redirect(post)
+            #return redirect(post)
+            post.body = markdown.markdown(post.body,
+                                          extensions=[
+                                              'markdown.extensions.extra',
+                                              'markdown.extensions.codehilite',
+                                              'markdown.extensions.toc',
+                                          ])
+            form=CommentForm()
+            context = {'post': post,
+                       'form': form,
+                       'comment_list': post.comment_set.all()
+                       }
+            return render(request,'blog/detail.html',context=context)
 
         else:
             # 检查到数据不合法，重新渲染详情页，并且渲染表单的错误。
