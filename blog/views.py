@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django.shortcuts import render
+from django.utils.text import slugify
+from markdown.extensions.toc import TocExtension
 
 # Create your views here.
 import markdown
@@ -11,6 +13,7 @@ from .models import Post,Category, Tag
 from comments.forms import CommentForm
 from django.views.generic import ListView, CreateView, DetailView
 from django.core.paginator import Paginator,EmptyPage,PageNotAnInteger
+from django.db.models import Q
 
 def index(request):
     post_list = Post.objects.all().order_by('-created_time')
@@ -190,15 +193,16 @@ class PostDetailView(DetailView):
     def get_object(self, queryset=None):
         post= super(PostDetailView, self).get_object(queryset=None)
         # 覆写 get_object 方法的目的是因为需要对 post 的 body 值进行渲染
-        post.body = markdown.markdown(post.body,
-                                      extensions=[
-                                          'markdown.extensions.extra',
-                                          'markdown.extensions.codehilite',
-                                          'markdown.extensions.toc',
-                                      ])
-
-
+        md = markdown.Markdown(extensions=[
+            'markdown.extensions.extra',
+            'markdown.extensions.codehilite',
+            #'markdown.extensions.toc',
+            TocExtension(slugify=slugify),
+        ])
+        post.body = md.convert(post.body)
+        post.toc = md.toc
         return post
+
     def get_context_data(self, **kwargs):
         # 覆写 get_context_data 的目的是因为除了将 post 传递给模板外（DetailView 已经帮我们完成），
         # 还要把评论表单、post 下的评论列表传递给模板
@@ -247,3 +251,14 @@ class TagView(ListView):
     def get_queryset(self):
         tag = get_object_or_404(Tag,pk=self.kwargs.get('pk'))
         return super(TagView,self).get_queryset().filter(tags=tag)
+
+
+def search(request):
+    q = request.GET.get('q')
+    error_msg = ''
+    if not q:
+        error_msg="请输入关键字"
+        return render(request,'blog/index.html',{'error_msg':error_msg})
+    post_list=Post.objects.filter(Q(title__icontains=q) | Q(body__icontains=q))
+    return render(request,'blog/index.html',{'error_msg':error_msg,
+                                             'post_list':post_list})
