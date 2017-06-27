@@ -28,4 +28,6 @@ urlpatterns = [
     url(r"^blog/",include('blog.urls')),
      url(r"^comments/",include('comments.urls')),
     url(r'^all/rss/$',AllPostsRssFeed(),name='rss'),
+    url(r'^users/',include('users.urls')),
+    url(r'^users/', include('django.contrib.auth.urls')),
 ]
